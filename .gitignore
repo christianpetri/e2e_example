@@ -1,0 +1,30 @@
+# Node.js modules for backend, frontend, and playwright
+/app/*/node_modules/
+/playwright/node_modules/
+
+# Build outputs
+/app/*/dist/
+
+# Environment variable files (CRUCIAL for security)
+.env
+.env.local
+.env.*.local
+
+# Playwright browser binaries and test results
+/playwright/.cache/
+/playwright/test-results/
+/playwright/playwright-report/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS-specific temporary files
+.DS_Store
+Thumbs.db
+
+# IDE specific files (e.g., VS Code)
+.vscode/
+.idea/
