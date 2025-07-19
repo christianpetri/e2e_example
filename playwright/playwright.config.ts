@@ -13,10 +13,10 @@ const DEBUG_CONFIG = process.env.DEBUG_PLAYWRIGHT_CONFIG === 'true';
 const TRACE_ENABLED = process.env.PLAYWRIGHT_TRACE === 'true';
 
 if (DEBUG_CONFIG) {
-    console.log(`[CONFIG DEBUG] FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}`);
-    console.log(`[CONFIG DEBUG] BACKEND_API_URL: ${BACKEND_API_URL}`);
-    console.log(`[CONFIG DEBUG] TEST_USERNAME (from env): ${process.env.TEST_USERNAME}`);
-    console.log(`[CONFIG DEBUG] TEST_PASSWORD (from env): ${process.env.TEST_PASSWORD ? 'SET' : 'NOT SET'}`);
+  console.log(`[CONFIG DEBUG] FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}`);
+  console.log(`[CONFIG DEBUG] BACKEND_API_URL: ${BACKEND_API_URL}`);
+  console.log(`[CONFIG DEBUG] TEST_USERNAME (from env): ${process.env.TEST_USERNAME}`);
+  console.log(`[CONFIG DEBUG] TEST_PASSWORD (from env): ${process.env.TEST_PASSWORD ? 'SET' : 'NOT SET'}`);
 }
 
 export default defineConfig({
@@ -38,7 +38,7 @@ export default defineConfig({
     {
       name: 'chromium-ui',
       testMatch: 'tests/ui/**/*.spec.ts', // This will now match all UI tests *except* login.ui.spec.ts
-                                          // if login.ui.spec.ts is specifically excluded or another project targets it.
+      // if login.ui.spec.ts is specifically excluded or another project targets it.
       // Make sure this doesn't accidentally include login.ui.spec.ts if you want it separate.
       // A common pattern is `testMatch: 'tests/ui/!(*.login).spec.ts'` or specific folders.
       // For now, let's ensure login.ui.spec.ts is ONLY matched by 'chromium-ui-unauth'.
@@ -52,7 +52,7 @@ export default defineConfig({
       name: 'api-backend',
       testMatch: 'tests/api/**/*.api.spec.ts',
       use: {
-        baseURL: BACKEND_API_URL,
+        baseURL: FRONTEND_BASE_URL,
         extraHTTPHeaders: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export default defineConfig({
         // No storageState here, as API tests perform their own login for explicit token
       },
     },
-    // --- ADD THIS NEW PROJECT FOR UNATHENTICATED UI TESTS (e.g., Login) ---
+     
     {
       name: 'chromium-ui-unauth',
       testMatch: 'tests/ui/login.ui.spec.ts', // <--- ONLY match the login test file
@@ -70,7 +70,6 @@ export default defineConfig({
         storageState: undefined, // <--- IMPORTANT: Ensure no pre-existing auth state for this project
       },
     },
-    // --- END NEW PROJECT ---
   ],
 
   webServer: [
@@ -83,7 +82,7 @@ export default defineConfig({
     },
     {
       command: 'npm run dev',
-      url: 'http://localhost:3000',
+      url: `${BACKEND_API_URL}/api/status`, // Check /api/status, which reliably returns 200
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
       cwd: path.resolve(__dirname, '../app/backend')

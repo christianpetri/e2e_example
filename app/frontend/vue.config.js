@@ -37,3 +37,27 @@ module.exports = defineConfig({
   },
   // --- END configureWebpack BLOCK ---
 });
+
+module.exports = {
+  // This is for your frontend development server settings
+  devServer: {
+    // Ensure this matches the port your frontend dev server runs on
+    port: 8080,
+    // The proxy configuration
+    proxy: {
+      // This rule applies to any request path starting with '/api'
+      '/api': {
+        // Forward these requests to your backend server
+        target: 'http://localhost:3000',
+        // This is important for backend servers that use virtual hosting or host headers
+        changeOrigin: true,
+        // (Optional) If your backend endpoints don't actually include '/api'
+        // For example, if you call '/api/status' but the backend is just '/status'
+        // then you would use:
+        // pathRewrite: { '^/api': '' },
+        // In our case, since your backend also uses '/api' (e.g., /api/login),
+        // you typically don't need pathRewrite.
+      }
+    }
+  }
+};

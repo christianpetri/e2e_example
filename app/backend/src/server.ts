@@ -1,129 +1,108 @@
 // app/backend/src/server.ts
-import express, { Request, Response } from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
+import express, { Request, Response, NextFunction } from 'express'; // Import NextFunction
+import bodyParser from 'body-parser';
+import * as dotenv from 'dotenv';
 import path from 'path';
+import cors from 'cors';
 
-// --- ROBUST DOTENV LOADING AND VALIDATION ---
-
-// Determine the expected .env file path
-const dotEnvPath = path.resolve(__dirname, '../../../.env');
-
-// Attempt to load .env variables
-const result = dotenv.config({ path: dotEnvPath });
-
-// Check if dotenv.config() resulted in an error (e.g., file not found)
-if (result.error) {
-    console.error(`ERROR: Could not load .env file from ${dotEnvPath}`);
-    console.error('Please ensure the .env file exists and is accessible.');
-    process.exit(1); // Exit the process with an error code
-}
-
-// Validate critical environment variables
-const requiredEnvVars = ['API_USERNAME', 'API_PASSWORD', 'BACKEND_PORT'];
-const missingEnvVars: string[] = [];
-
-for (const varName of requiredEnvVars) {
-    if (!process.env[varName]) {
-        missingEnvVars.push(varName);
-    }
-}
-
-if (missingEnvVars.length > 0) {
-    console.error('\n--- CRITICAL ENVIRONMENT VARIABLES MISSING ---');
-    console.error(`The backend requires the following environment variables to be set in your .env file (${dotEnvPath}):`);
-    for (const varName of missingEnvVars) {
-        console.error(`- ${varName}`);
-    }
-    console.error('\nPlease ensure these variables are present and have values.');
-    console.error('\nExample .env content for backend:');
-    console.error(`API_USERNAME=testuser`);
-    console.error(`API_PASSWORD=testpassword`);
-    console.error(`BACKEND_PORT=3000`);
-    console.error('-------------------------------------------\n');
-    process.exit(1); // Exit the process with an error code
-}
-
-
-// Now, you can confidently use process.env variables, as they've been validated
-const API_USERNAME = process.env.API_USERNAME as string;
-const API_PASSWORD = process.env.API_PASSWORD as string; // Be careful exposing plain password, even for logging
-const BACKEND_PORT = parseInt(process.env.BACKEND_PORT || '3000', 10); // Parse as integer
-
-console.log('--- Backend Environment Variables ---');
-console.log('API_USERNAME:', API_USERNAME);
-console.log('API_PASSWORD:', API_PASSWORD ? 'SET' : 'NOT SET');
-console.log('BACKEND_PORT:', BACKEND_PORT);
-console.log('-----------------------------------');
-
-// End of dotenv loading and validation
-// --- REST OF YOUR SERVER CODE ---
+// Load environment variables from the root .env file
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
-const PORT = BACKEND_PORT; // Use the parsed PORT variable
+const PORT = process.env.BACKEND_PORT || 3000;
+const API_USERNAME = process.env.API_USERNAME || 'testuser';
+const API_PASSWORD = process.env.API_PASSWORD || 'testpassword';
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:8080';
 
-app.use(cors());
-app.use(express.json());
+// Configure CORS
+const corsOptions = {
+  origin: FRONTEND_ORIGIN,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
 
-app.get('/', (req: Request, res: Response) => {
-    res.status(200).send('Backend is running and healthy!');
+app.use(bodyParser.json());
+
+// --- Authentication Middleware (NEW or REFACTORED) ---
+// This function will check for a valid token
+const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    console.warn('Access denied: No token provided.');
+    return res.status(401).json({ message: 'Access Denied: No token provided' });
+  }
+
+  if (token === 'fake-jwt-token-for-demo') { // In a real app, you'd verify JWT validity here
+    // Optionally attach user info to request
+    (req as any).user = { username: API_USERNAME }; // For demonstration, attaching fake user
+    next(); // Proceed to the next middleware/route handler
+  } else {
+    console.warn('Access denied: Invalid token.');
+    return res.status(403).json({ message: 'Forbidden: Invalid token' });
+  }
+};
+
+// --- API Endpoints ---
+
+// Public Data Endpoint
+app.get('/api/public-data', (req, res) => {
+  console.log('Access to public data granted.');
+  return res.status(200).json({ message: 'This is public data from the backend!' });
 });
 
-// Example API routes (add your actual routes here)
-app.get('/api/data', (req: Request, res: Response) => {
-    res.status(200).json({ message: 'This is public data!' });
+// Generic Status Endpoint
+app.get('/api/status', (req, res) => {
+  console.log('Backend status check received.');
+  return res.status(200).json({ message: 'Backend is online!' });
 });
 
-app.post('/api/login', (req: Request, res: Response) => {
-    const { username, password } = req.body;
+// Login endpoint
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
 
-    if (username === API_USERNAME && password === API_PASSWORD) {
-        // In a real app, you'd generate a proper JWT token here
-        const token = 'fake-jwt-token-for-test-user-12345';
-        res.status(200).json({ message: 'Login successful', token });
-    } else {
-        res.status(401).json({ message: 'Invalid credentials' });
+  if (username === API_USERNAME && password === API_PASSWORD) {
+    const token = 'fake-jwt-token-for-demo'; // In a real app, generate a real JWT
+    console.log(`User ${username} logged in successfully.`);
+    return res.status(200).json({ message: 'Login successful!', token });
+  } else {
+    console.warn(`Login attempt failed for username: ${username}`);
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+});
+
+// Protected GET route (re-using authenticateToken middleware)
+app.get('/api/data', authenticateToken, (req, res) => {
+  console.log('Access to protected data granted.');
+  // Access user info from req.user if attached by middleware
+  const user = (req as any).user ? (req as any).user.username : API_USERNAME;
+  return res.status(200).json({ message: 'This is protected data from the backend!', user: user });
+});
+
+// --- NEW Protected POST /api/resource endpoint ---
+app.post('/api/resource', authenticateToken, (req, res) => {
+  const newResource = req.body; // The data sent by the client
+  const user = (req as any).user ? (req as any).user.username : API_USERNAME; // Get user from token
+
+  // In a real application, you would save this newResource to a database
+  // and assign it a unique ID, associate it with the 'user', etc.
+  console.log(`User ${user} created a new resource:`, newResource);
+
+  return res.status(201).json({
+    message: 'Resource created successfully!',
+    resource: {
+      id: `res-${Date.now()}`, // Dummy ID
+      createdBy: user,
+      ...newResource // Echo back the sent data
     }
-});
-
-app.get('/api/protected', (req: Request, res: Response) => {
-    // In a real app, you'd validate the bearer token from the Authorization header
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        if (token === 'fake-jwt-token-for-test-user-12345') { // Simple token validation for this example
-            res.status(200).json({ message: 'This is protected data!', user: API_USERNAME });
-        } else {
-            res.status(401).json({ message: 'Unauthorized: Invalid token' });
-        }
-    } else {
-        res.status(401).json({ message: 'Unauthorized: No token provided' });
-    }
-});
-
-// Example route for creating a resource (POST)
-app.post('/api/resource', (req: Request, res: Response) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        if (token === 'fake-jwt-token-for-test-user-12345') {
-            const { name, description } = req.body;
-            if (name && description) {
-                // Simulate saving a resource
-                const newResource = { id: Date.now(), name, description, createdBy: API_USERNAME };
-                res.status(201).json({ message: 'Resource created successfully', resource: newResource });
-            } else {
-                res.status(400).json({ message: 'Name and description are required.' });
-            }
-        } else {
-            res.status(401).json({ message: 'Unauthorized: Invalid token' });
-        }
-    } else {
-        res.status(401).json({ message: 'Unauthorized: No token provided' });
-    }
+  });
 });
 
 
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Backend server listening on http://localhost:${PORT}`);
+  console.log(`Backend server listening on port ${PORT}`);
+  console.log(`CORS enabled for origin: ${FRONTEND_ORIGIN}`);
 });

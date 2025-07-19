@@ -1,262 +1,243 @@
-# End-to-End Testing Example Project
+# Full-Stack Application with Vue.js, Node.js API, and Playwright E2E Tests
 
-This project demonstrates a simple full-stack application with a Vue.js frontend and an Express.js backend, accompanied by a robust End-to-End (E2E) testing suite using Playwright. It's designed to showcase how to set up, run, and test a typical web application from frontend to backend.
+This repository contains a simple full-stack application demonstrating a Vue.js frontend, a Node.js Express backend API, and end-to-end (E2E) tests using Playwright. It highlights common development patterns, including API proxying in development and integrated deployment for production.
 
-## 🚀 Project Overview
+---
 
-The project consists of:
+## Table of Contents
 
-* **`app/frontend`**: A simple Vue.js application that interacts with the backend.
-* **`app/backend`**: An Express.js API server that provides data and authentication endpoints.
-* **`playwright`**: The directory containing all Playwright E2E tests and configurations.
+- [Full-Stack Application with Vue.js, Node.js API, and Playwright E2E Tests](#full-stack-application-with-vuejs-nodejs-api-and-playwright-e2e-tests)
+  - [Table of Contents](#table-of-contents)
+  - [1. Prerequisites](#1-prerequisites)
+  - [2. Project Setup](#2-project-setup)
+    - [Environment Variables](#environment-variables)
+    - [Install Dependencies](#install-dependencies)
+  - [3. Running the Application (Development)](#3-running-the-application-development)
+    - [Start Backend API](#start-backend-api)
+    - [Start Frontend Dev Server](#start-frontend-dev-server)
+    - [Development Proxy Explained (Frontend 8080 to Backend 3000)](#development-proxy-explained-frontend-8080-to-backend-3000)
+  - [4. Running Playwright Tests](#4-running-playwright-tests)
+    - [Playwright's `webServer` Configuration](#playwrights-webserver-configuration)
+    - [Run All Tests](#run-all-tests)
+    - [Run UI Tests](#run-ui-tests)
+    - [Run API Tests](#run-api-tests)
+    - [Playwright UI Mode (Interactive Debugging)](#playwright-ui-mode-interactive-debugging)
+  - [5. Production Deployment Notes (Single WAR)](#5-production-deployment-notes-single-war)
+  - [6. Troubleshooting](#6-troubleshooting)
 
-## 📋 Prerequisites
+---
 
-Before you begin, ensure you have the following installed on your machine. **It is highly recommended to use a Node Version Manager (NVM) to handle Node.js versions.**
+## 1. Prerequisites
 
-* **Node.js**: Version 14 or higher (LTS recommended).
-  * You can download it from [nodejs.org](https://nodejs.org/).
-* **npm** (Node Package Manager): Comes bundled with Node.js.
-* **Git**: For cloning the repository.
-  * You can download it from [git-scm.com](https://git-scm.com/).
+Before you begin, ensure you have the following installed:
 
-### Node Version Manager (NVM) - Highly Recommended
+- **Node.js & npm:** (LTS version recommended)
+  - [Download Node.js](https://nodejs.org/en/download/)
+- **Java Development Kit (JDK):** (e.g., JDK 11 or newer)
+  - [Download OpenJDK](https://openjdk.java.net/install/)
+- **Apache Maven or Gradle:** (If your Java backend is built with one of these)
+  - [Download Maven](https://maven.apache.org/download.cgi)
+  - [Download Gradle](https://gradle.org/install/)
+- **Apache Tomcat:** (Version 9 or higher recommended)
+  - [Download Tomcat](https://tomcat.apache.org/download-90.cgi)
 
-`nvm` (Node Version Manager) allows you to easily install and switch between different Node.js versions on your machine. This is crucial for collaborative projects to ensure everyone is using the exact same Node.js version required by the project, preventing "it works on my machine" issues.
+---
 
-**Installation:**
+## 2. Project Setup
 
-* **Linux/macOS:** Follow the instructions on the [nvm GitHub repository](https://github.com/nvm-sh/nvm#installing-and-updating). Typically, you'll use a `curl` or `wget` command.
-* **Windows:** Use `nvm-windows`. You can find instructions and releases on its [GitHub repository](https://github.com/coreybutler/nvm-windows#installation).
+### Environment Variables
 
-**Basic Usage:**
-
-After installing `nvm`, you can:
-
-* **Install a specific Node.js version:**
-
-    ```bash
-    nvm install 18 # Or the specific version recommended for the project
-    ```
-
-* **Use a specific Node.js version for your current terminal session:**
-
-    ```bash
-    nvm use 18 # Use the version you installed
-    ```
-
-* **Set a default Node.js version:**
-
-    ```bash
-    nvm alias default 18
-    ```
-
-* **See all installed Node.js versions:**
-
-    ```bash
-    nvm ls
-    ```
-
-## 🛠️ Setup Instructions
-
-Follow these steps to get the project up and running on your local machine.
-
-### 1. Clone the Repository
-
-```bash
-git clone [YOUR_REPOSITORY_URL]
-cd e2e_example
-```
-
-### 2. Install Dependencies
-
-Navigate into each application directory and install their respective dependencies.
-
-```bash
-# Install backend dependencies
-cd app/backend
-npm install
-
-# Install frontend dependencies
-cd ../frontend
-npm install
-
-# Install Playwright dependencies
-cd ../../playwright
-npx playwright install # Installs Playwright browsers
-npm install
-```
-
-### 3. Configure Environment Variables (`.env` file)
-
-Environment variables are crucial for configuring different parts of the application and tests.
-
-Create a file named `.env` in the **root directory** of your project (e.g., `e2e_example/.env`).
-
-**File: `e2e_example/.env`**
+Create a `.env` file in the **root directory** of your project (`e2e_example/.env`). This file will hold configuration for both your frontend, backend, and Playwright tests.
 
 ```dotenv
-# .env
+# e2e_example/.env
 
-# --- Backend Configuration ---
-# Port where the Express.js backend will listen
-BACKEND_PORT=3000
-# Username and password for backend API authentication
-API_USERNAME=testuser
-API_PASSWORD=testpassword
+# Frontend URL (for Playwright and general reference)
+FRONTEND_BASE_URL=http://localhost:8080
 
-# --- Frontend Configuration ---
-# Port where the Vue.js frontend will be served
-FRONTEND_PORT=8080
-# The backend port, prefixed with VUE_APP_ for Vue CLI to expose it to the frontend
-VUE_APP_BACKEND_PORT=3000
-# Frontend login endpoint relative to its proxy setup
-VUE_APP_LOGIN_ENDPOINT=/api/login
-
-# --- Playwright Configuration ---
-# Base URL for UI tests (will be http://localhost:8080)
-BASE_URL=http://localhost:8080
-# BACKEND_API_URL for direct API tests (will be http://localhost:3000)
+# Backend API URL (for Playwright API tests and general reference)
 BACKEND_API_URL=http://localhost:3000
+BACKEND_PORT=3000 # Port for the Node.js backend
 
-# --- Playwright Test User Credentials ---
-# These are used by the Playwright API tests for authentication
+# Frontend Origin for Backend CORS (if backend needs to allow specific origins)
+FRONTEND_ORIGIN=http://localhost:8080
+
+# Test Credentials (used by Playwright tests and backend for demo login)
 TEST_USERNAME=testuser
-TEST_PASSWORD=testpassword
+TEST_PASSWORD=testpass
+
+# Playwright Debugging Flags (set to 'true' for verbose output/tracing)
+DEBUG_PLAYWRIGHT_CONFIG=false
+PLAYWRIGHT_TRACE=false
 ```
 
-## 🚀 Running the Applications
+### Install Dependencies
 
-You can run the frontend and backend applications manually in separate terminal windows. This is often useful for development.
-
-### 1. Start the Backend Server
-
-Open a new terminal, navigate to the `app/backend` directory, and run:
+Navigate into each project directory and install its dependencies:
 
 ```bash
+# From the project root (e2e_example)
+
+# Install frontend dependencies
+cd app/frontend
+npm install
+cd .. # Go back to app/
+
+# Install backend dependencies
+cd backend
+npm install
+cd ../.. # Go back to project root
+
+# Install Playwright dependencies (from the 'playwright' directory)
+cd playwright
+npm install
+npm install --save-dev @types/node # Crucial for TypeScript to recognize 'process'
+cd .. # Go back to project root
+```
+
+---
+
+## 3. Running the Application (Development)
+
+For development, the frontend and backend run as separate processes. The frontend's development server includes a proxy to seamlessly route API calls.
+
+### Start Backend API
+
+Open a **new terminal window** and run the backend server:
+
+```bash
+# From the project root (e2e_example)
 cd app/backend
 npm run dev
 ```
 
-You should see output indicating the backend is listening on `http://localhost:3000`.
+You should see output indicating the backend server is listening on `http://localhost:3000`. (Note: Visiting `http://localhost:3000/` directly in a browser will likely show "Cannot GET /" as it's an API-only server, which is normal.)
 
-### 2. Start the Frontend Application
+### Start Frontend Dev Server
 
-Open another new terminal, navigate to the `app/frontend` directory, and run:
+Open **another new terminal window** and run the frontend development server:
 
 ```bash
+# From the project root (e2e_example)
 cd app/frontend
 npm run serve
 ```
 
-You should see output indicating the frontend is served on `http://localhost:8080`.
+This will start the Vue.js application, typically accessible at `http://localhost:8080`.
 
-You can now visit `http://localhost:8080` in your web browser to interact with the application.
+### Development Proxy Explained (Frontend 8080 to Backend 3000)
 
-## 🧪 End-to-End Testing with Playwright
+In development, your Vue.js frontend (served by Webpack Dev Server on `http://localhost:8080`) needs to communicate with your Node.js backend (on `http://localhost:3000`). Browsers enforce the **Same-Origin Policy**, which would normally block direct JavaScript calls from `8080` to `3000` (different ports = different origins) due to CORS.
 
-This project uses Playwright for robust E2E testing. The tests are configured to automatically start your frontend and backend servers, perform authentication, and run various UI and API tests.
+To solve this, your `app/frontend/vue.config.js` is configured with a **proxy**:
 
-### How Playwright Works Here
-
-* **Automatic Server Management (`webServer`):** In `playwright/playwright.config.ts`, the `webServer` section tells Playwright to automatically start your `app/frontend` and `app/backend` servers before tests run, and shut them down afterwards. You do **not** need to run them manually when running tests via Playwright's `webServer`.
-* **Global Setup (`globalSetup`):** The `playwright/auth.setup.ts` script runs once before all tests. It performs a UI login and saves the authenticated session state (`storageState.json`).
-* **Authentication Reuse:**
-  * **UI Tests (`chromium-ui` project):** Reuse the `storageState.json` to start tests with an already logged-in user, avoiding repeated UI login steps.
-  * **API Tests (`api-backend` project):** Perform an explicit API login within each test (or a `test.beforeEach`) to obtain a fresh token, ensuring isolated and clear API authentication flow for testing.
-
-### Running Tests
-
-Navigate to the `playwright` directory:
-
-```bash
-cd playwright
+```javascript
+// app/frontend/vue.config.js
+module.exports = {
+  devServer: {
+    proxy: {
+      '/api': { // When Vue.js code calls /api/login (i.e., http://localhost:8080/api/login)
+        target: 'http://localhost:3000', // The Webpack Dev Server forwards it to http://localhost:3000/api/login
+        changeOrigin: true,
+      }
+    }
+  }
+};
 ```
 
-#### Run All Tests
+This means:
+
+- Your Vue.js code continues to make API calls to **relative paths** like `/api/status` or `/api/login`.
+- The browser sends these requests to `http://localhost:8080/api/...`.
+- The Webpack Dev Server (on `8080`) intercepts these requests and **server-side forwards** them to `http://localhost:3000/...`.
+- From the browser's perspective, the request never leaves `localhost:8080`, thus **bypassing client-side CORS restrictions** for development.
+
+---
+
+## 4. Running Playwright Tests
+
+Playwright can automatically manage starting your frontend and backend servers using its `webServer` configuration, or you can start them manually as described above.
+
+### Playwright's `webServer` Configuration
+
+Your `playwright/playwright.config.ts` includes a `webServer` section that tells Playwright how to launch and wait for your frontend and backend:
+
+```typescript
+// playwright/playwright.config.ts (excerpt)
+webServer: [
+  {
+    command: 'npm run serve', // Start frontend
+    url: 'http://localhost:8080', // Wait for frontend to be ready
+    cwd: path.resolve(__dirname, '../app/frontend'),
+  },
+  {
+    command: 'npm run dev', // Start backend
+    url: 'http://localhost:3000/api/status', // Wait for backend's /api/status endpoint to be ready
+    cwd: path.resolve(__dirname, '../app/backend'),
+  },
+],
+```
+
+This configuration ensures both services are running before tests begin.
+
+### Run All Tests
+
+To run all Playwright tests (both UI and API tests):
 
 ```bash
+# From the 'playwright' directory
+cd playwright
 npx playwright test
 ```
 
-#### Run UI Tests Only
+### Run UI Tests
+
+To run only the UI-related tests (which interact with the browser and your frontend application):
 
 ```bash
+# From the 'playwright' directory
+cd playwright
 npx playwright test --project=chromium-ui
+# Or for unauthenticated UI tests (e.g., login):
+npx playwright test --project=chromium-ui-unauth
 ```
 
-#### Run API Tests Only
+### Run API Tests
+
+To run only the pure API tests (which make direct HTTP calls to your backend, bypassing the frontend and browser):
 
 ```bash
+# From the 'playwright' directory
+cd playwright
 npx playwright test --project=api-backend
 ```
 
-#### Run a Specific Test File
+### Playwright UI Mode (Interactive Debugging)
+
+For an interactive experience and powerful debugging tools (step-by-step execution, DOM inspection, network logs, screenshots), use the UI mode:
 
 ```bash
-npx playwright test tests/api/auth.api.spec.ts
+# From the 'playwright' directory
+cd playwright
+npx playwright test --ui
 ```
 
-### Viewing Test Reports
+---
 
-After running tests, Playwright automatically generates an HTML report.
+## 5. Production Deployment Notes (Single WAR)
 
-```bash
-npx playwright show-report
-```
+Your final application is designed to be deployed as a **single WAR file** to a servlet container like Apache Tomcat. This fundamentally changes the API communication mechanism compared to development.
 
-### Debugging Playwright Configuration
+- **Integrated Frontend & Backend:** In this setup, your Vue.js static files and your Java API code are bundled together within the same WAR.
+- **Same Origin:** When deployed to Tomcat (e.g., at `http://localhost:8080/mywarcontext/`), both your frontend and your Java API endpoints (e.g., `http://localhost:8080/mywarcontext/internal/api/status`) are served from the **exact same origin**.
+- **No Proxy Needed:** Because they are on the same origin, the browser's Same-Origin Policy is not violated. Therefore, the `vue.config.js` development proxy is **not included in the production build**, and you **do not need to configure Tomcat as a reverse proxy** for an *external* API. Tomcat simply routes requests internally to the correct Java servlets/controllers within the WAR.
+- **API Call Paths:** Ensure your Vue.js application's API calls correctly account for the WAR's context path. If your WAR is `myproject.war` (context `/myproject`), then Vue.js calls should be to `/myproject/internal/api/...`. This can be managed by setting Axios `baseURL` dynamically in your Vue app.
 
-If you need to debug how Playwright is loading environment variables or configuring its base URLs, you can enable verbose logging for the configuration:
+---
 
-* **On Windows (PowerShell):**
+## 6. Troubleshooting
 
-    ```bash
-    $env:DEBUG_PLAYWRIGHT_CONFIG='true'; npx playwright test
-    ```
-
-* **On Windows (Command Prompt - CMD):**
-´´´bash
-
-´´´
-    ```bash
-    set DEBUG_PLAYWRIGHT_CONFIG=true && npx playwright test
-    ```
-
-* **On Linux/macOS:**
-
-    ```bash
-    DEBUG_PLAYWRIGHT_CONFIG=true npx playwright test
-    ```
-
-    Remember to remove the `DEBUG_PLAYWRIGHT_CONFIG=true` prefix for normal test runs to keep the output clean.
-
-## 📂 Project Structure
-
-```text
-e2e_example/
-├── .env                       # Environment variables for backend, frontend, and Playwright
-├── README.md                  # This file
-├── app/
-│   ├── backend/               # Express.js backend application
-│   │   ├── src/
-│   │   │   └── server.ts      # Backend API definitions
-│   │   └── package.json
-│   └── frontend/              # Vue.js frontend application
-│       ├── public/
-│       ├── src/
-│       │   └── App.vue        # Main Vue component (modified for data-testid, id, name)
-│       └── package.json       # (Modified vue.config.js for feature flags, .env path, etc.)
-└── playwright/                # Playwright E2E testing setup
-    ├── .env.example           # Example .env for Playwright (not actively used if root .env exists)
-    ├── auth.setup.ts          # Global setup for UI login authentication
-    ├── playwright.config.ts   # Playwright configuration file (modified for new project type)
-    ├── storageState.json      # Generated file storing authenticated session state
-    ├── tests/
-    │   ├── api/
-    │   │   └── auth.api.spec.ts # API tests for authentication and protected resources
-    │   └── ui/
-    │       ├── basic.ui.spec.ts # Basic UI tests (e.g., navigation, public data)
-    │       └── login.ui.spec.ts # UI test for login functionality (new file, modified assertions)
-    └── package.json
-```
+- **"Error: Process from config.webServer exited early."**: This almost always means a port conflict. Ensure no other processes are using `localhost:8080` or `localhost:3000`. Close any old terminal windows running servers. Use `netstat -ano | findstr :PORT` (Windows) or `lsof -i :PORT` (macOS/Linux) to identify and kill processes.
+- **"Cannot find name 'process'" (TypeScript error)**: Ensure you have installed `@types/node` in your `playwright` directory: `npm install --save-dev @types/node`. Restart your IDE if the error persists.
+- **API Test `404 Not Found`**: This means your backend API is running but doesn't have a route defined for the specific path your test is requesting. Double-check the endpoint paths in your Playwright API test (`auth.api.spec.ts`) against your backend's `server.ts` file.
+- **Frontend API calls failing in browser (production WAR)**: Check your Tomcat logs (`catalina.out`) for Java backend errors. Verify your Vue.js application is making API calls to the correct URL paths, including the WAR's context path (e.g., `/mywarcontext/internal/api/`).

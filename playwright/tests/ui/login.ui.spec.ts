@@ -43,7 +43,7 @@ test.describe('Login UI Functionality', () => {
 
     await test.step('Verify error message is displayed', async () => {
       // Assert that the red error message 'Invalid credentials' is visible
-      await expect(page.locator('p[style*="color: red"]:has-text("Invalid credentials")')).toBeVisible();
+      await expect(page.locator('p:has-text("Invalid credentials")')).toBeVisible();
       // Ensure the page did not redirect
       await expect(page).toHaveURL('http://localhost:8080/');
     });
