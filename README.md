@@ -97,7 +97,7 @@ JAVA_API_BASE_PATH=internal/api/
 
 # Test Credentials (used by Playwright tests and backend for demo login)
 TEST_USERNAME=testuser
-TEST_PASSWORD=testpassword # Ensure this matches your Java backend's expected password
+TEST_PASSWORD=testpassword
 
 # Playwright Debugging Flags (set to 'true' for verbose output/tracing)
 DEBUG_PLAYWRIGHT_CONFIG=false
