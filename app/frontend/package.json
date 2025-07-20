@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "build": "npm run format && vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "format": "prettier --write \"./src/**/*.{js,vue,ts,json,css,scss}\"",
+    "postinstall": "npm run format"
   },
   "dependencies": {
     "axios": "^1.10.0",

@@ -13,9 +13,7 @@
     <h1>Frontend Application</h1>
     <section class="app-section">
       <h2>Public Data Access</h2>
-      <button @click="fetchData" class="action-button">
-        Fetch Public Data
-      </button>
+      <button @click="fetchData" class="action-button">Fetch Public Data</button>
       <div aria-live="polite">
         <p v-if="data" class="data-message">{{ data }}</p>
         <p v-if="error" class="error-message">{{ error }}</p>
@@ -45,11 +43,7 @@
           data-testid="login-password-input"
           autocomplete="current-password"
         />
-        <button
-          @click="login"
-          data-testid="login-button"
-          class="action-button primary-button"
-        >
+        <button @click="login" data-testid="login-button" class="action-button primary-button">
           Login
         </button>
       </div>
@@ -66,11 +60,7 @@
       </div>
 
       <div class="protected-data-controls">
-        <button
-          @click="fetchProtectedData"
-          :disabled="!bearerToken"
-          class="action-button"
-        >
+        <button @click="fetchProtectedData" :disabled="!bearerToken" class="action-button">
           Fetch Protected Data (Requires Login)
         </button>
         <div aria-live="polite">
@@ -96,9 +86,7 @@
       <p
         v-if="backendStatusMessage"
         :style="{
-          color: backendStatusSuccess
-            ? 'var(--color-success-muted)'
-            : 'var(--color-error-muted)',
+          color: backendStatusSuccess ? 'var(--color-success-muted)' : 'var(--color-error-muted)',
         }"
         class="backend-status-message"
       >
@@ -109,13 +97,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import axios, { type AxiosError } from "axios";
+import { defineComponent } from 'vue';
+import axios, { type AxiosError } from 'axios';
 
 // Set the base URL for all Axios requests.
 // This should match your WAR's context path + your Java API base path.
 // Assuming ROOT.war deployment (context path '/') and Java API base path '/internal/api'
-axios.defaults.baseURL = "/internal/api";
+axios.defaults.baseURL = '/internal/api';
 // If your WAR is named 'myproject.war' (context path '/myproject'), it would be:
 // axios.defaults.baseURL = '/myproject/internal/api';
 
@@ -135,16 +123,15 @@ interface ProtectedResponse {
 }
 
 export default defineComponent({
-  name: "App",
+  name: 'App',
   data() {
     return {
       data: null as string | null,
       error: null as string | null,
-      username: "" as string,
-      password: "" as string,
+      username: '' as string,
+      password: '' as string,
       // Load token from localStorage on component initialization
-      bearerToken:
-        localStorage.getItem("bearerToken") || (null as string | null),
+      bearerToken: localStorage.getItem('bearerToken') || (null as string | null),
       loginMessage: null as string | null,
       loginSuccess: false as boolean,
       protectedData: null as string | null,
@@ -163,20 +150,16 @@ export default defineComponent({
       this.error = null;
       try {
         // Calls /internal/api/public-data (relative to axios.defaults.baseURL)
-        const response = await axios.get<BackendDataResponse>("/public-data");
+        const response = await axios.get<BackendDataResponse>('/public-data');
         this.data = response.data.message;
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
-          console.error(
-            "Error fetching public data:",
-            err.response?.data || err.message
-          );
+          console.error('Error fetching public data:', err.response?.data || err.message);
           this.error =
-            err.response?.data?.message ||
-            "Failed to fetch public data. Network or server issue.";
+            err.response?.data?.message || 'Failed to fetch public data. Network or server issue.';
         } else {
-          console.error("An unexpected error occurred:", err);
-          this.error = "An unknown error occurred while fetching public data.";
+          console.error('An unexpected error occurred:', err);
+          this.error = 'An unknown error occurred while fetching public data.';
         }
       }
     },
@@ -186,23 +169,23 @@ export default defineComponent({
       this.bearerToken = null;
       try {
         // Calls /internal/api/login (relative to axios.defaults.baseURL)
-        const response = await axios.post<LoginResponse>("/login", {
+        const response = await axios.post<LoginResponse>('/login', {
           username: this.username,
           password: this.password,
         });
         this.bearerToken = response.data.token;
-        localStorage.setItem("bearerToken", this.bearerToken || ""); // Store token
+        localStorage.setItem('bearerToken', this.bearerToken || ''); // Store token
         this.loginMessage = response.data.message;
         this.loginSuccess = true;
-        console.log("Login successful, token:", this.bearerToken);
+        console.log('Login successful, token:', this.bearerToken);
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
-          console.error("Login error:", err.response?.data || err.message);
-          this.loginMessage = err.response?.data?.message || "Login failed.";
+          console.error('Login error:', err.response?.data || err.message);
+          this.loginMessage = err.response?.data?.message || 'Login failed.';
           this.loginSuccess = false;
         } else {
-          console.error("An unexpected error occurred during login:", err);
-          this.loginMessage = "An unknown error occurred during login.";
+          console.error('An unexpected error occurred during login:', err);
+          this.loginMessage = 'An unknown error occurred during login.';
           this.loginSuccess = false;
         }
       }
@@ -211,12 +194,12 @@ export default defineComponent({
       this.protectedData = null;
       this.protectedError = null;
       if (!this.bearerToken) {
-        this.protectedError = "No token available. Please log in first.";
+        this.protectedError = 'No token available. Please log in first.';
         return;
       }
       try {
         // Calls /internal/api/data (relative to axios.defaults.baseURL)
-        const response = await axios.get<ProtectedResponse>("/data", {
+        const response = await axios.get<ProtectedResponse>('/data', {
           headers: {
             Authorization: `Bearer ${this.bearerToken}`,
           },
@@ -224,60 +207,46 @@ export default defineComponent({
         this.protectedData = response.data.message;
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
-          console.error(
-            "Error fetching protected data:",
-            err.response?.data || err.message
-          );
+          console.error('Error fetching protected data:', err.response?.data || err.message);
           this.protectedError =
             err.response?.data?.message ||
-            "Failed to fetch protected data. Token might be invalid.";
+            'Failed to fetch protected data. Token might be invalid.';
         } else {
-          console.error(
-            "An unexpected error occurred during protected data fetch:",
-            err
-          );
-          this.protectedError =
-            "An unknown error occurred while fetching protected data.";
+          console.error('An unexpected error occurred during protected data fetch:', err);
+          this.protectedError = 'An unknown error occurred while fetching protected data.';
         }
       }
     },
     logout(): void {
       this.bearerToken = null;
-      localStorage.removeItem("bearerToken");
-      this.loginMessage = "Logged out successfully.";
+      localStorage.removeItem('bearerToken');
+      this.loginMessage = 'Logged out successfully.';
       this.loginSuccess = true;
       this.protectedData = null;
       this.protectedError = null;
-      this.username = "";
-      this.password = "";
+      this.username = '';
+      this.password = '';
       this.fetchData(); // Refresh public data after logout
-      console.log("User logged out.");
+      console.log('User logged out.');
     },
     async checkBackendStatus(): Promise<void> {
       this.backendStatusMessage = null;
       this.backendStatusSuccess = false;
       try {
         // Calls /internal/api/status (relative to axios.defaults.baseURL)
-        const response = await axios.get<{ message: string }>("/status");
+        const response = await axios.get<{ message: string }>('/status');
         this.backendStatusMessage = response.data.message;
         this.backendStatusSuccess = true;
-        console.log("Backend status:", this.backendStatusMessage);
+        console.log('Backend status:', this.backendStatusMessage);
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
-          this.backendStatusMessage = "Backend is offline or unreachable.";
+          this.backendStatusMessage = 'Backend is offline or unreachable.';
           this.backendStatusSuccess = false;
-          console.error(
-            "Error checking backend status:",
-            err.response?.data || err.message
-          );
+          console.error('Error checking backend status:', err.response?.data || err.message);
         } else {
-          this.backendStatusMessage =
-            "An unknown error occurred while checking backend status.";
+          this.backendStatusMessage = 'An unknown error occurred while checking backend status.';
           this.backendStatusSuccess = false;
-          console.error(
-            "An unexpected error occurred while checking backend status:",
-            err
-          );
+          console.error('An unexpected error occurred while checking backend status:', err);
         }
       }
     },
@@ -305,7 +274,7 @@ export default defineComponent({
 /* Basic reset for consistent styling */
 body {
   margin: 0;
-  font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif; /* A clear, widely available font */
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; /* A clear, widely available font */
   background-color: var(--color-background);
   color: var(--color-text);
   line-height: 1.6; /* Improved readability */
@@ -357,9 +326,7 @@ h2 {
   margin-top: 30px; /* More top margin */
   margin-bottom: 30px; /* More bottom margin */
   padding: 25px; /* More padding */
-  background-color: var(
-    --color-secondary
-  ); /* Very light, distinct background */
+  background-color: var(--color-secondary); /* Very light, distinct background */
   border-radius: 8px;
   border: none; /* Removed dashed border for cleaner look */
 }
