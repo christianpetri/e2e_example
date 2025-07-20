@@ -1,0 +1,48 @@
+# ========================
+# Git Attributes for e2e_example Project
+# ========================
+
+# --- Line Ending Normalization ---
+# Default all text files to LF (Unix-style) line endings upon checkout.
+# This helps ensure consistency across different operating systems.
+* text=auto eol=lf
+
+# Explicitly set specific file types to LF, overriding any 'auto' detection if necessary.
+# This is good practice for source code.
+*.js text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.vue text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.xml text eol=lf
+*.java text eol=lf
+*.properties text eol=lf
+
+# Preserve CRLF (Windows-style) line endings for specific script types
+# that are designed to run on Windows and might break with LF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Ensure Unix shell scripts explicitly use LF.
+*.sh text eol=lf
+
+# --- Binary Files ---
+# Mark common binary files to prevent Git from attempting line ending conversions or diffing.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.war binary
+*.jar binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.mp4 binary
+*.mov binary
+*.avi binary
+*.pdf binary
