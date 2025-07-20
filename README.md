@@ -15,14 +15,14 @@ The project consists of:
 Before you begin, ensure you have the following installed on your machine. **It is highly recommended to use a Node Version Manager (NVM) to handle Node.js versions.**
 
 * **Node.js**: Version 14 or higher (LTS recommended).
-    * You can download it from [nodejs.org](https://nodejs.org/).
+  * You can download it from [nodejs.org](https://nodejs.org/).
 * **npm** (Node Package Manager): Comes bundled with Node.js.
 * **Git**: For cloning the repository.
-    * You can download it from [git-scm.com](https://www.git-scm.com/).
+  * You can download it from [git-scm.com](https://www.git-scm.com/).
 * **Maven**: Required to build the Java backend project.
-    * Download from [maven.apache.org/download.cgi](https://maven.apache.org/download.cgi).
+  * Download from [maven.apache.org/download.cgi](https://maven.apache.org/download.cgi).
 * **Docker Desktop**: Required to run the Java/Tomcat backend using `docker compose`.
-    * You can download it from [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/).
+  * You can download it from [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/).
 
 ### Node Version Manager (NVM) - Highly Recommended
 
@@ -121,6 +121,7 @@ The application's frontend (Vue.js) is built, then bundled into the Java backend
 Convenient scripts are provided at the project root to automate this process.
 
 **Make scripts executable (Linux/macOS only):**
+
 ```bash
 # From project root
 chmod +x deploy-to-docker.sh docker-down.sh
@@ -129,21 +130,25 @@ chmod +x deploy-to-docker.sh docker-down.sh
 **To build and deploy the entire application (Frontend + Java Backend + Docker):**
 
 This script will:
-1.  Check if Docker is running.
-2.  (Optional) Check if `nvm` is sourced.
-3.  Navigate to `app/frontend`, run `npm install` and `npm run build`.
-4.  Navigate to `app/java-backend-frontend`, run `mvn clean install` (which bundles the Vue.js build into `ROOT.war`).
-5.  Stop any existing Docker containers (`docker compose down --remove-orphans`).
-6.  Start the Tomcat container (`docker compose up -d tomcat`).
-7.  Wait briefly for Tomcat to start.
-8.  Copy the `ROOT.war` into the running Tomcat container.
+
+1. Check if Docker is running.
+2. (Optional) Check if `nvm` is sourced.
+3. Navigate to `app/frontend`, run `npm install` and `npm run build`.
+4. Navigate to `app/java-backend-frontend`, run `mvn clean install` (which bundles the Vue.js build into `ROOT.war`).
+5. Stop any existing Docker containers (`docker compose down --remove-orphans`).
+6. Start the Tomcat container (`docker compose up -d tomcat`).
+7. Wait briefly for Tomcat to start.
+8. Copy the `ROOT.war` into the running Tomcat container.
 
 * **Linux/macOS:**
+
     ```bash
     # From project root
     ./deploy-to-docker.sh
     ```
+
 * **Windows:**
+
     ```cmd
     :: From project root
     deploy-to-docker.bat
@@ -171,8 +176,8 @@ This project uses Playwright for robust E2E testing. The tests are configured to
 * **Automatic Server Management (`webServer`):** In `playwright/playwright.config.ts`, the `webServer` section is configured to run the `deploy-to-docker.sh` (or `.bat`) script before tests begin. This ensures your entire application stack (frontend and Java backend) is built, deployed, and ready. It also includes a health check to wait until the application is responsive. You do **not** need to run `deploy-to-docker` manually when running tests via Playwright's `webServer`.
 * **Global Setup (`globalSetup`):** The `playwright/auth.setup.ts` script runs once before all tests. It performs a UI login and saves the authenticated session state (`storageState.json`).
 * **Authentication Reuse:**
-    * **UI Tests (`chromium-ui` project):** Reuse the `storageState.json` to start tests with an already logged-in user, avoiding repeated UI login steps.
-    * **API Tests (`api-backend` project):** The tests can directly leverage the `storageState` from the global setup, ensuring that API calls within these tests are authenticated where necessary. Some tests might also perform explicit API logins to test authentication flows directly.
+      * **UI Tests (`chromium-ui` project):** Reuse the `storageState.json` to start tests with an already logged-in user, avoiding repeated UI login steps.
+  * **API Tests (`api-backend` project):** The tests can directly leverage the `storageState` from the global setup, ensuring that API calls within these tests are authenticated where necessary. Some tests might also perform explicit API logins to test authentication flows directly.
 
 ### Running Tests
 
@@ -216,11 +221,14 @@ npx playwright test tests/api/auth.api.spec.ts
 When you're done with development or testing, you can stop and remove the Docker containers using the provided script:
 
 * **Linux/macOS:**
+
     ```bash
     # From project root
     ./docker-down.sh
     ```
+
 * **Windows:**
+
     ```cmd
     :: From project root
     docker-down.bat
