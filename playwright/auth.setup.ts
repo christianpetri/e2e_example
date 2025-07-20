@@ -2,14 +2,25 @@
 import { chromium, expect } from '@playwright/test';
 import path from 'path';
 import * as dotenv from 'dotenv';
+import * as fs from 'fs'; // Import fs module for file system operations
 
 async function globalSetup() {
-  // Load environment variables for globalSetup specifically
+  // Load environment variables for globalSetup specifically (e.g., from .env in project root)
   dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
   const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:8080';
   const TEST_USERNAME = process.env.TEST_USERNAME || 'testuser';
   const TEST_PASSWORD = process.env.TEST_PASSWORD || 'testpassword';
+
+  // Define the storage directory and file path relative to auth.setup.ts
+  const STORAGE_DIR = path.resolve(__dirname, 'auth'); // This will be e.g., '.../playwright/auth'
+  const STORAGE_FILE = path.join(STORAGE_DIR, 'storageState.json'); // This will be e.g., '.../playwright/auth/storageState.json'
+
+  // 1. Create folder if it doesn't exist
+  if (!fs.existsSync(STORAGE_DIR)) {
+    fs.mkdirSync(STORAGE_DIR, { recursive: true });
+    console.log(`✅ Created folder for auth state: ${STORAGE_DIR}`);
+  }
 
   console.log('\n--- Running Playwright Global Setup (Login) ---');
   console.log(`Attempting UI login to: ${FRONTEND_BASE_URL}`);
@@ -26,21 +37,16 @@ async function globalSetup() {
   await page.click('button:has-text("Login")');
 
   // Wait for successful login indicator (e.g., "Login successful" text)
-  // This is CRUCIAL: Wait for an element that appears ONLY after successful login
-  // Replace 'p:has-text("Login successful")' with a more robust locator if needed,
-  // or wait for a URL change away from '/login'
   await expect(page.locator('p:has-text("Login successful")')).toBeVisible({ timeout: 10000 });
   console.log('UI Login confirmed: "Login successful" message visible.');
 
   // Optional: Wait for any async token storage to complete
-  // You might need a short timeout here if token storage is slightly delayed after UI update
   await page.waitForTimeout(500); // Give it a moment
 
-  // Save the storage state (cookies, localStorage, sessionStorage) for future test runs
-  // This will include any token/session data your frontend manages internally
-  await page.context().storageState({ path: 'storageState.json' });
+  // Save the storage state (cookies, localStorage, sessionStorage)
+  await page.context().storageState({ path: STORAGE_FILE }); // Use the defined STORAGE_FILE path
 
-  console.log('Storage state saved to storageState.json for authenticated tests.');
+  console.log(`Storage state saved to: ${STORAGE_FILE} for authenticated tests.`);
   await browser.close();
   console.log('--- Playwright Global Setup Complete ---');
 }

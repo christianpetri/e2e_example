@@ -9,7 +9,7 @@ test.describe('Basic UI Functionality', () => {
 
     // Check for the main heading
     const heading = page.locator('h1');
-    await expect(heading).toHaveText('Frontend App');
+    await expect(heading).toHaveText('Frontend Application');
   });
 
   test('should fetch public data via UI button', async ({ page }) => {
@@ -17,7 +17,7 @@ test.describe('Basic UI Functionality', () => {
     await page.click('button:has-text("Fetch Public Data")');
 
     // Wait for the data to appear on the page
-    const dataParagraph = page.locator('p:has-text("This is public data!")');
+    const dataParagraph = page.locator('p:has-text("This is public data from the Java backend!")');
     await expect(dataParagraph).toBeVisible();
   });
 });

@@ -1,76 +1,91 @@
-// playwright/tests/api/auth.api.spec.ts
-import { test, expect } from '@playwright/test';
-// Removed: path, dotenv imports (these are handled by playwright.config.ts)
-// Removed: FRONTEND_BASE_URL, BACKEND_API_URL constants (these are configured in playwright.config.ts)
+import { test, expect, request } from '@playwright/test';
+import { createApiClient } from '../../utils/apiClient';
 
-// Define TEST_USERNAME and TEST_PASSWORD for direct use in test logic
-// These are specific to the test's data payload and are fine here.
-const TEST_USERNAME = process.env.TEST_USERNAME || 'testuser';
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'testpassword';
+const { TEST_USERNAME, TEST_PASSWORD } = process.env;
 
-test.describe('Authenticated API Tests', () => {
+test.describe('Authenticated Java Backend API Tests', () => {
+    test.beforeEach(({ baseURL }) => {
+        console.log(`[API Suite] baseURL from config: ${baseURL}`);
+    });
 
-    test('should access protected user profile API', async ({ request }) => {
-        // Perform API login directly within this test to get the token
-        // Playwright's `request` fixture will automatically use the `baseURL`
-        // configured for the 'api-backend' project in `playwright.config.ts`.
-        const loginResponse = await request.post('/api/login', { // Correct: Use relative path
-            data: {
-                username: TEST_USERNAME,
-                password: TEST_PASSWORD,
-            },
-        });
-        expect(loginResponse.status()).toBe(200);
-        const loginData = await loginResponse.json();
-        const bearerToken = loginData.token;
+    test('Login via API should return token', async ({ request }) => {
+        const credentials = { username: TEST_USERNAME, password: TEST_PASSWORD };
+        const response = await request.post('login', { data: credentials });
 
-        if (!bearerToken) {
-            throw new Error('API Login did not return a token.');
-        }
+        console.log(`[Login Test] Status: ${response.status()}`);
+        expect(response.status()).toBe(200);
 
-        const response = await request.get('/api/protected', { // Correct: Use relative path
-            headers: {
-                'Authorization': `Bearer ${bearerToken}`,
-            },
-        });
+        const body = await response.json();
+        expect(body).toHaveProperty('token');
+        expect(typeof body.token).toBe('string');
+        console.log(`[Login Test] Token acquired.`);
+    });
+
+    test('Access public data', async () => {
+        const api = await createApiClient(false); // No auth
+        const response = await api.get('public-data');
+        const body = await response.json();
+
+        console.log(`[Public API] Status: ${response.status()}`);
+        console.log(`[Public API] Body:`, body);
 
         expect(response.status()).toBe(200);
-        const data = await response.json();
-        expect(data.message).toContain('This is protected data!');
-        expect(data.user).toBe(TEST_USERNAME);
+        expect(body.message).toContain('This is public data from the Java backend!');
+
+        await api.dispose();
     });
 
-    test('should create a new protected resource via API', async ({ request }) => {
-        // Same logic for obtaining token: API login
-        const loginResponse = await request.post('/api/login', {
-            data: {
-                username: TEST_USERNAME,
-                password: TEST_PASSWORD,
-            },
-        });
-        expect(loginResponse.status()).toBe(200);
-        const loginData = await loginResponse.json();
-        const bearerToken = loginData.token;
-
-        if (!bearerToken) {
-            throw new Error('API Login did not return a token for resource creation test.');
-        }
-
-        const newResourceData = {
+    test('Create a new protected resource with bearer token', async () => {
+        const api = await createApiClient(true); // Auth
+        const newResource = {
             name: `Playwright Resource ${Date.now()}`,
-            description: 'A resource created by an authenticated API test.',
+            description: 'Created via Playwright',
+            version: 1.0,
         };
 
-        const response = await request.post('/api/resource', { // Correct: Use relative path
-            headers: {
-                'Authorization': `Bearer ${bearerToken}`,
-            },
-            data: newResourceData,
-        });
+        const response = await api.post('resource', newResource);
+        const body = await response.json();
+
+        console.log(`[Resource Creation] Status: ${response.status()}`);
+        console.log(`[Resource Creation] Body:`, body);
 
         expect(response.status()).toBe(201);
-        const data = await response.json();
-        expect(data.message).toContain('Resource created successfully');
-        expect(data.resource.name).toBe(newResourceData.name);
+        expect(body.message).toContain('Resource created successfully!');
+        expect(body.resource.name).toBe(newResource.name);
+
+        await api.dispose();
     });
+
+    test('Access protected data without token should fail', async () => {
+        const api = await createApiClient(false); // No auth
+        const response = await api.get('data');
+        const body = await response.json();
+
+        console.log(`[Unauthorized Access] Status: ${response.status()}`);
+        console.log(`[Unauthorized Access] Body:`, body);
+
+        expect(response.status()).toBe(401);
+        expect(body.message).toContain('Unauthorized: No valid token provided');
+
+        await api.dispose();
+    });
+
+    test('Probe endpoint to confirm baseURL behavior', async () => {
+        const baseURL = 'http://localhost:8080/internal/api/';
+
+        const context = await request.newContext({ baseURL });
+        console.log('Context created with baseURL:', baseURL);
+
+        const response = await context.get('probe'); // resolved as baseURL + '/probe'
+        const body = await response.json();
+
+        console.log('Probe Response Status:', response.status());
+        console.log('Probe Response Body:', body);
+
+        expect(response.status()).toBe(200);
+        expect(body.status).toBe('probe received');
+
+        await context.dispose();
+    });
+
 });

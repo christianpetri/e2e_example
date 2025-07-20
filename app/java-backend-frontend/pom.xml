@@ -1,0 +1,98 @@
+<!-- app/java-backend-frontend/pom.xml -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example</groupId>
+  <artifactId>myfullstackapp</artifactId>
+  <packaging>war</packaging>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>MyFullstackApp Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>17</maven.compiler.source> <!-- Or 17, depending on your JDK -->
+    <maven.compiler.target>17</maven.compiler.target> <!-- Or 17 -->
+    <spring.boot.version>3.2.7</spring.boot.version> <!-- If using Spring Boot -->
+  </properties>
+
+  <dependencies>
+    <!-- If using Spring Boot (Recommended for modern Java APIs) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>${spring.boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+      <version>${spring.boot.version}</version>
+      <scope>provided</scope> <!-- Important: Tomcat provides its own servlet container -->
+    </dependency>
+    <!-- End Spring Boot -->
+
+    <!-- OR if using plain Servlets (less common for new projects) -->
+    <!--
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>${java.servlet.api.version}</version>
+        <scope>provided</scope>
+    </dependency>
+    -->
+    <!-- End plain Servlets -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>ROOT</finalName> <!-- IMPORTANT: To make it deploy as ROOT.war -->
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+
+      <!-- If using Spring Boot, you'll need the Spring Boot Maven Plugin -->
+      <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <version>${spring.boot.version}</version>
+          <executions>
+              <execution>
+                  <goals>
+                      <goal>repackage</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
+      <!-- End Spring Boot Plugin -->
+
+      <!-- Configure the WAR plugin to include Vue.js build output -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.3.2</version>
+        <configuration>
+          <webResources>
+            <resource>
+              <directory>${project.basedir}/../frontend/dist</directory> <!-- Path to your Vue.js dist folder -->
+              <targetPath>/</targetPath> <!-- Copy contents to the root of the WAR -->
+            </resource>
+          </webResources>
+          <failOnMissingWebXml>false</failOnMissingWebXml> <!-- For Spring Boot, web.xml might not be explicit -->
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

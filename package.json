@@ -1,0 +1,22 @@
+{
+  "name": "e2e_example",
+  "version": "1.0.0",
+  "description": "This project demonstrates a simple full-stack application with a Vue.js frontend and an Express.js backend, accompanied by a robust End-to-End (E2E) testing suite using Playwright. It's designed to showcase how to set up, run, and test a typical web application from frontend to backend.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christianpetri/e2e_example.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/christianpetri/e2e_example/issues"
+  },
+  "homepage": "https://github.com/christianpetri/e2e_example#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "@types/node": "^24.0.15"
+  }
+}

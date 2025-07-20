@@ -1,0 +1,15 @@
+# e2e_example/docker-compose.yml
+version: '3.8'
+
+services:
+  tomcat:
+    image: tomcat:10.1-jdk17-temurin-jammy # Use Tomcat 10.1 with JDK 17
+    container_name: my-tomcat-app
+    ports:
+      - "8080:8080" # Map host port 8080 to container port 8080
+    volumes:
+      # Optional: Mount a volume for logs if you want to easily access them on host
+      - ./tomcat_logs:/usr/local/tomcat/logs
+    # Command to keep Tomcat running even if webapps dir is empty initially
+    command: ["catalina.sh", "run"]
+    restart: unless-stopped # Restart if it stops, unless manually stopped
