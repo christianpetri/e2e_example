@@ -7,7 +7,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env'), quiet: true
 
 // Define your base URLs and API paths for clarity and reuse
 const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:8080/';
-const JAVA_API_BASE_PATH = process.env.JAVA_API_BASE_PATH || 'internal/api';
+const JAVA_API_BASE_PATH = process.env.JAVA_API_BASE_PATH || 'internal/api/';
 
 // *** IMPORTANT: This path MUST match the one used in auth.setup.ts ***
 // It resolves to 'YOUR_PROJECT_ROOT/playwright/auth/storageState.json'
