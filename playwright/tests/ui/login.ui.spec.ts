@@ -1,8 +1,8 @@
 // playwright/tests/ui/login.ui.spec.ts
 import { test, expect } from '@playwright/test';
 
-const TEST_USERNAME = process.env.TEST_USERNAME || 'defaultuser';
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'defaultpass';
+const TEST_USERNAME = process.env.TEST_USERNAME || 'testuser';
+const TEST_PASSWORD = process.env.TEST_PASSWORD || 'testpassword';
 
 test.describe('Login UI Functionality', () => {
 

@@ -1,7 +1,8 @@
 import { test, expect, request } from '@playwright/test';
 import { createApiClient } from '../../utils/apiClient';
 
-const { TEST_USERNAME, TEST_PASSWORD } = process.env;
+const TEST_USERNAME = process.env.TEST_USERNAME || 'testuser';
+const TEST_PASSWORD = process.env.TEST_PASSWORD || 'testpassword';
 
 test.describe('Authenticated Java Backend API Tests', () => {
     test.beforeEach(({ baseURL }) => {

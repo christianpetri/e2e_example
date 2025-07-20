@@ -2,8 +2,8 @@ import { request } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
-const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:8080';
-const JAVA_API_BASE_PATH = process.env.JAVA_API_BASE_PATH || '/internal/api';
+const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:8080/';
+const JAVA_API_BASE_PATH = process.env.JAVA_API_BASE_PATH || 'internal/api/';
 const STORAGE_FILE = path.resolve(__dirname, '../auth/storageState.json');
 
 async function loginAndGetToken(): Promise<string> {

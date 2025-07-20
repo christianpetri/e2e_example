@@ -35,3 +35,4 @@ node_modules/
 /playwright-report/
 /blob-report/
 /app/java-backend-frontend/target
+tomcat_logs/
