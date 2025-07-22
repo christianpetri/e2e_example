@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Playwright Test",
+      "runtimeExecutable": "npx",
+      "args": [
+        "playwright",
+        "test",
+        //"--project=chromium", // Optional: specify a project from your config
+        "${file}" // Debug current active file, or specify a path like "tests/api/auth.api.spec.ts"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "PWDEBUG": "1" // Set to "1" if you want to combine with Playwright Inspector
+      }
+    }
+  ]
+}

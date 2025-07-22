@@ -267,6 +267,19 @@ If you need to debug how Playwright is loading environment variables or configur
 
     Remember to remove the `DEBUG_PLAYWRIGHT_CONFIG=true` prefix for normal test runs to keep the output clean.
 
+## ⚙️ VS Code Workspace Settings
+
+This project uses the default `.vscode` folder for Visual Studio Code workspace settings (such as launch configurations and recommended extensions).  
+By convention, the `.vscode` folder is **ignored by git** (see `.gitignore`), so your personal editor settings and launch configurations will not be committed to the repository.
+
+If you previously had a folder named `vscodeExample`, it has now been renamed to `.vscode` to follow the standard convention.
+
+**Note:**  
+If you want to share workspace settings or launch configurations with your team, you can remove `.vscode/` from `.gitignore` and commit selected files (like `settings.json` or `launch.json`).
+
+> **Note:**  
+> The `.vscode` folder with your workspace settings and launch configurations should be placed inside the `playwright` directory (i.e., `playwright/.vscode`). This keeps Playwright-specific editor settings separate from the rest of your project.
+
 ## 📂 Project Structure
 
 ```text

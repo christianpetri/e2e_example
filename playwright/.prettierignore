@@ -1,0 +1,7 @@
+node_modules/
+dist/
+snapshots/
+# Ignore all Playwright snapshot folders
+**/*-snapshots/**
+playwright-report/
+test-results/
