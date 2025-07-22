@@ -1,3 +1,5 @@
+#.prettierignore
+# Prettier configuration ignore file for Playwright project
 node_modules/
 dist/
 snapshots/
